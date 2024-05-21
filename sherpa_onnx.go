@@ -336,10 +336,11 @@ type OfflineNemoEncDecCtcModelConfig struct {
 }
 
 type OfflineWhisperModelConfig struct {
-	Encoder  string
-	Decoder  string
-	Language string
-	Task     string
+	Encoder      string
+	Decoder      string
+	Language     string
+	Task         string
+	TailPaddings int
 }
 
 type OfflineTdnnModelConfig struct {
@@ -441,6 +442,8 @@ func NewOfflineRecognizer(config *OfflineRecognizerConfig) *OfflineRecognizer {
 	c.model_config.whisper.task = C.CString(config.ModelConfig.Whisper.Task)
 	defer C.free(unsafe.Pointer(c.model_config.whisper.task))
 
+	c.model_config.whisper.tail_paddings = C.int(config.ModelConfig.Whisper.TailPaddings)
+
 	c.model_config.tdnn.model = C.CString(config.ModelConfig.Tdnn.Model)
 	defer C.free(unsafe.Pointer(c.model_config.tdnn.model))
 
@@ -532,10 +535,11 @@ type OfflineTtsVitsModelConfig struct {
 	Model       string  // Path to the VITS onnx model
 	Lexicon     string  // Path to lexicon.txt
 	Tokens      string  // Path to tokens.txt
-	DataDir     string  // Path to tokens.txt
+	DataDir     string  // Path to espeak-ng-data directory
 	NoiseScale  float32 // noise scale for vits models. Please use 0.667 in general
 	NoiseScaleW float32 // noise scale for vits models. Please use 0.8 in general
 	LengthScale float32 // Please use 1.0 in general. Smaller -> Faster speech speed. Larger -> Slower speech speed
+	DictDir     string  // Path to dict directory for jieba (used only in Chinese tts)
 }
 
 type OfflineTtsModelConfig struct {
@@ -604,6 +608,9 @@ func NewOfflineTts(config *OfflineTtsConfig) *OfflineTts {
 	c.model.vits.noise_scale = C.float(config.Model.Vits.NoiseScale)
 	c.model.vits.noise_scale_w = C.float(config.Model.Vits.NoiseScaleW)
 	c.model.vits.length_scale = C.float(config.Model.Vits.LengthScale)
+
+	c.model.vits.dict_dir = C.CString(config.Model.Vits.DictDir)
+	defer C.free(unsafe.Pointer(c.model.vits.dict_dir))
 
 	c.model.num_threads = C.int(config.Model.NumThreads)
 	c.model.debug = C.int(config.Model.Debug)
